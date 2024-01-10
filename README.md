@@ -3,3 +3,52 @@
 
 ## 插件列表
 gem-resource
+
+
+## Examples
+启动服务,接收请求
+```go
+
+server1 := gem.NewServer(1)
+
+userId := userid.Int64(1)
+req := dialog.New("ljw", "hello")
+
+server1.Request(userId, req)
+```
+
+顶号下线，使用local_registry
+server1和server2需要可以运行在同一个的进程中
+```go
+server1 := gem.NewServer(1)
+server2 := gem.NewServer(2)
+
+reg := local_registry.New()
+server1.WithRegistry(reg)
+server2.WithRegistry(reg)
+
+userId := userid.Int64(1)
+req := dialog.New("ljw", "hello")
+
+server1.Request(userId, req)
+// server1上的用户1会被顶下线，然后server2处理请求
+server2.Request(userId, req)
+```
+
+顶号下线，使用redis_registry
+server1和server2可以运行在不同的进程中
+```go
+server1 := gem.NewServer(1)
+server2 := gem.NewServer(2)
+
+reg := redis_registry.New()
+server1.WithRegistry(reg)
+server2.WithRegistry(reg)
+
+userId := userid.Int64(1)
+req := dialog.New("ljw", "hello")
+
+server1.Request(userId, req)
+// server1上的用户1会被顶下线，然后server2处理请求
+server2.Request(userId, req)
+```
