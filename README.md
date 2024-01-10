@@ -20,6 +20,7 @@ server1.Request(userId, req)
 ```
 
 顶号下线，使用local_registry 
+
 server1和server2需要可以运行在同一个的进程中 
 
 ```go
@@ -39,6 +40,7 @@ server2.Request(userId, req)
 ```
 
 顶号下线，使用redis_registry 
+
 server1和server2可以运行在不同的进程中 
 
 ```go
