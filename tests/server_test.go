@@ -1,12 +1,18 @@
 package tests
 
 import (
+	"context"
+	"fmt"
+	"net/http"
+	"sync"
 	"testing"
 
 	"github.com/lujingwei002/gem"
 	"github.com/lujingwei002/gem/proto/dialog"
 	"github.com/lujingwei002/gem/registry/local_registry"
+	"github.com/lujingwei002/gem/registry/redis_registry"
 	"github.com/lujingwei002/gem/userid"
+	"google.golang.org/grpc"
 )
 
 type TestSessionHandler struct {
@@ -60,7 +66,7 @@ func TestSessionLoad(t *testing.T) {
 
 	var times int = 4
 	for i := 1; i <= times; i++ {
-		server1.Request(userId, req)
+		server1.Request(context.Background(), userId, req)
 	}
 	if createdTimes != 1 {
 		t.Fatalf("session created times failed, expected=%d got=%d", 1, createdTimes)
@@ -86,6 +92,71 @@ func TestSessionLocalForceLogout(t *testing.T) {
 	userId := userid.Int64(1)
 	req := dialog.New("ljw", "hello")
 
-	server1.Request(userId, req)
-	server2.Request(userId, req)
+	server1.Request(context.Background(), userId, req)
+	server2.Request(context.Background(), userId, req)
+}
+
+func TestSessionRedisRegistry(t *testing.T) {
+	grpcServer1 := grpc.NewServer()
+	server1 := gem.NewServer(1)
+	server1.WithHandler(&TestSessionHandler{}).
+		WithAddress("127.0.0.1:4441").
+		WithGrpcServer(grpcServer1)
+
+	grpcServer2 := grpc.NewServer()
+	server2 := gem.NewServer(2)
+	server2.WithHandler(&TestSessionHandler{}).
+		WithAddress("127.0.0.1:4442").
+		WithGrpcServer(grpcServer2)
+
+	// 注册grpc resolver
+	// server.RegisterGrpcResolver()
+	// 会话注册到注册表
+	reg1, _ := redis_registry.Connect(context.Background(), "127.0.0.1:6379", "123456", 0)
+	server1.WithRegistry(reg1)
+
+	reg2, _ := redis_registry.Connect(context.Background(), "127.0.0.1:6379", "123456", 0)
+	server2.WithRegistry(reg2)
+
+	userId := userid.Int64(1)
+	req := dialog.New("ljw", "hello")
+
+	server1.Request(context.Background(), userId, req)
+	server2.Request(context.Background(), userId, req)
+}
+
+func TestWaitGroup(t *testing.T) {
+	var wg sync.WaitGroup
+	var urls = []string{
+		"http://www.baidu.com/",
+	}
+	for _, url := range urls {
+		// Increment the WaitGroup counter.
+		wg.Add(1)
+		// Launch a goroutine to fetch the URL.
+		go func(url string) {
+			// Decrement the counter when the goroutine completes.
+			defer wg.Done()
+			// Fetch the URL.
+			http.Get(url)
+		}(url)
+	}
+	// Wait for all HTTP fetches to complete.
+	wg.Wait()
+	fmt.Println("eeeeeeeeeee1")
+
+	for _, url := range urls {
+		// Increment the WaitGroup counter.
+		wg.Add(1)
+		// Launch a goroutine to fetch the URL.
+		go func(url string) {
+			// Decrement the counter when the goroutine completes.
+			defer wg.Done()
+			// Fetch the URL.
+			http.Get(url)
+		}(url)
+	}
+	// Wait for all HTTP fetches to complete.
+	wg.Wait()
+	fmt.Println("eeeeeeeeeee2")
 }

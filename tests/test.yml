@@ -1,0 +1,16 @@
+version: "3.6"
+
+services:
+
+  redis1:
+    ports:
+      - 6379:6379
+    container_name: gem-redis1
+    image: redis
+    command:
+      - redis-server
+      - --requirepass
+      - "123456"
+
+
+  

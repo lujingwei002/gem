@@ -47,9 +47,3 @@ func newSession(server *Server, userID UserID) *session {
 	}
 	return s
 }
-
-// 顶号下线
-type ForceLogout interface {
-	ForceLogout(userID UserID) error
-	ServerID() int64
-}

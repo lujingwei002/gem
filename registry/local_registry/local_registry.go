@@ -1,6 +1,7 @@
 package local_registry
 
 import (
+	"context"
 	"errors"
 	"sync"
 
@@ -24,12 +25,12 @@ func New() *LocalRegistry {
 }
 
 // 添加用户到注册表，如果用户之前已经存在，则将顶号顶下线
-func (r *LocalRegistry) AddUser(userID gem.UserID, new gem.ForceLogout) error {
+func (r *LocalRegistry) AddUser(ctx context.Context, userID gem.UserID, new gem.RegistryServer) error {
 	if new == nil {
 		return ErrForceLogoutUndefined
 	}
 	if old, loaded := r.users.LoadOrStore(userID.Value(), new); loaded {
-		if err := old.(gem.ForceLogout).ForceLogout(userID); err != nil {
+		if err := old.(gem.RegistryServer).ForceLogout(userID); err != nil {
 			return err
 		}
 		if ok := r.users.CompareAndSwap(userID.Value(), old, new); !ok {

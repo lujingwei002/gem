@@ -89,6 +89,7 @@ source := redis_source.New()
 
 server1.PullFrom(source)
 
+// 同时提供了client接口，用来发送请求
 source.Request(userId, req)
 source.Request(userId, req)
 ```

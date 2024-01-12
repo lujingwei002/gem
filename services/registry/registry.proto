@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option go_package = "./registrypb";
+package registrypb;
+
+message ForceLogoutRequest {
+    int64 UserID = 1;
+}
+
+message ForceLogoutResponse {
+    
+}
+
+service Registry {
+    rpc ForceLogout(ForceLogoutRequest) returns (ForceLogoutResponse) {}
+}
